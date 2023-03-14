@@ -1,10 +1,11 @@
 package com.changenode;
 
 import com.changenode.FxInterface.Log;
+import com.changenode.FxInterface.LogConstants;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class LogHelper implements Log {
+public class LogHelper implements Log, LogConstants {
     private final StringBuilder sb;
     private final Model model;
 
@@ -15,12 +16,12 @@ public class LogHelper implements Log {
         model.mainTextProperty().bindBidirectional(textProperty);
     }
 
-    public void log(String s, String t) {
+    public void log(Integer s, String t) {
         switch(s) {
-            case "label":
+            case TO_LABEL:
                 appendLabel(t);
                 break;
-            case "text":
+            case TO_TEXT:
                 appendText(t + System.lineSeparator());
                 break;
             default:

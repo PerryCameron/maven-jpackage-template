@@ -9,7 +9,7 @@ public class Interactor {
         this.model = model;
         this.log = new LogHelper(model);
     }
-    public void updateLogModel(String s, String t) {
+    public void updateLogModel(Integer s, String t) {
         log.log(s,t);
     }
 

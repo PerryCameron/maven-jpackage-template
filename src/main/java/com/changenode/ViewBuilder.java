@@ -2,6 +2,7 @@ package com.changenode;
 
 import atlantafx.base.theme.PrimerDark;
 import atlantafx.base.theme.PrimerLight;
+import com.changenode.FxInterface.LogConstants;
 import com.changenode.widgetfx.ButtonWidgets;
 import com.changenode.widgetfx.MenuWidgets;
 import javafx.application.Application;
@@ -38,11 +39,11 @@ import static java.lang.System.getProperty;
 import static java.lang.System.out;
 import static java.util.Calendar.getInstance;
 
-public class ViewBuilder implements Builder<Region> {
+public class ViewBuilder implements Builder<Region>, LogConstants {
     private final Model model;
-    private final BiConsumer<String,String> log;
+    private final BiConsumer<Integer,String> log;
     private final Consumer<Void> attention;
-    public ViewBuilder(Model model, BiConsumer<String,String> log, Consumer<Void> attention) {
+    public ViewBuilder(Model model, BiConsumer<Integer,String> log, Consumer<Void> attention) {
         this.model = model;
         this.log = log;
         this.attention = attention;
@@ -62,7 +63,7 @@ public class ViewBuilder implements Builder<Region> {
         TextArea textArea = new TextArea();
         textArea.setWrapText(true);
         textArea.textProperty().bind(model.mainTextProperty());
-        log.accept("both","Try dragging one or more files and/or directories here from another application.");
+        log.accept(TO_TEXT_AND_LABEL,"Try dragging one or more files and/or directories here from another application.");
         textArea.setOnDragOver(event -> handleDragOver(textArea, event));
         textArea.setOnDragEntered(event -> handleDragEntered(textArea));
         textArea.setOnDragExited(event -> handleDragExited(textArea));
@@ -87,11 +88,11 @@ public class ViewBuilder implements Builder<Region> {
         createEditMenu(menuBar);
         createIntegrationMenu(menuBar);
         createDebugMenu(menuBar);
-        log.accept("label","Ready.");
+        log.accept(TO_LABEL,"Ready.");
         Button toggleDark = ButtonWidgets.boundDarkButton(model.darkProperty());
         toggleDark.setOnAction(event -> toggleDark(toggleDark,model.darkProperty()));
         Button helloWorld = ButtonWidgets.helloWorldButton();
-        helloWorld.setOnAction(event -> log.accept("both","Hello World! " + java.util.Calendar.getInstance().getTime()));
+        helloWorld.setOnAction(event -> log.accept(TO_TEXT_AND_LABEL,"Hello World! " + java.util.Calendar.getInstance().getTime()));
         toolbar.getItems().addAll(toggleDark,helloWorld);
         topElements.getChildren().add(toolbar);
         return topElements;
@@ -109,7 +110,7 @@ public class ViewBuilder implements Builder<Region> {
 
     private void createFileMenu(MenuBar menuBar) {
         Menu file = new Menu("File");
-        MenuItem newFile = MenuWidgets.Configure("New", x -> log.accept("","File -> New"), KeyCode.N);
+        MenuItem newFile = MenuWidgets.Configure("New", x -> log.accept(TO_TEXT_AND_LABEL,"File -> New"), KeyCode.N);
         MenuItem open = MenuWidgets.Configure("Open...", x -> openFileDialog(), KeyCode.O);
         file.getItems().addAll(newFile, open);
         if (!isMac()) {
@@ -121,20 +122,20 @@ public class ViewBuilder implements Builder<Region> {
 
     private void createEditMenu(MenuBar menuBar) {
         Menu edit = new Menu("Edit");
-        MenuItem undo = MenuWidgets.Configure("Undo", x -> log.accept("","Undo"), KeyCode.Z);
-        MenuItem redo = MenuWidgets.Configure("Redo", x -> log.accept("","Redo"), KeyCode.R);
+        MenuItem undo = MenuWidgets.Configure("Undo", x -> log.accept(TO_TEXT_AND_LABEL,"Undo"), KeyCode.Z);
+        MenuItem redo = MenuWidgets.Configure("Redo", x -> log.accept(TO_TEXT_AND_LABEL,"Redo"), KeyCode.R);
         SeparatorMenuItem editSeparator = new SeparatorMenuItem();
-        MenuItem cut = MenuWidgets.Configure("Cut", x -> log.accept("","Cut"), KeyCode.X);
-        MenuItem copy = MenuWidgets.Configure("Copy", x -> log.accept("","Copy"), KeyCode.C);
-        MenuItem paste = MenuWidgets.Configure("Paste", x -> log.accept("","Paste"), KeyCode.V);
+        MenuItem cut = MenuWidgets.Configure("Cut", x -> log.accept(TO_TEXT_AND_LABEL,"Cut"), KeyCode.X);
+        MenuItem copy = MenuWidgets.Configure("Copy", x -> log.accept(TO_TEXT_AND_LABEL,"Copy"), KeyCode.C);
+        MenuItem paste = MenuWidgets.Configure("Paste", x -> log.accept(TO_TEXT_AND_LABEL,"Paste"), KeyCode.V);
         edit.getItems().addAll(undo, redo, editSeparator, cut, copy, paste);
         menuBar.getMenus().addAll(edit);
     }
 
     private void createIntegrationMenu(MenuBar menuBar) {
         if (!isTaskbarSupported()) return;
-        log.accept("both","");
-        log.accept("both","Desktop integration flags for this platform include:");
+        log.accept(TO_TEXT_AND_LABEL,"");
+        log.accept(TO_TEXT_AND_LABEL,"Desktop integration flags for this platform include:");
         printTaskBarFeatures();
         setImagesToModel();
         MenuItem useCustomIcon = MenuWidgets.Configure("Use Custom App Icon", x -> getTaskbar().setIconImage(model.redCircleIconProperty().get()), null);
@@ -173,7 +174,7 @@ public class ViewBuilder implements Builder<Region> {
 
     private void printTaskBarFeatures() {
         for (Taskbar.Feature feature : Taskbar.Feature.values()) {
-            log.accept("both" ," " + feature.name() + " " + getTaskbar().isSupported(feature));
+            log.accept(TO_TEXT_AND_LABEL ," " + feature.name() + " " + getTaskbar().isSupported(feature));
         }
     }
 
@@ -250,7 +251,7 @@ public class ViewBuilder implements Builder<Region> {
         boolean success = false;
         if (db.hasFiles()) {
             for (File file : db.getFiles()) {
-                log.accept("both", file.getAbsolutePath());
+                log.accept(TO_TEXT_AND_LABEL, file.getAbsolutePath());
             }
             success = true;
         }
@@ -264,9 +265,9 @@ public class ViewBuilder implements Builder<Region> {
         fileChooser.setTitle("Open File");
         File file = fileChooser.showOpenDialog(BaseApplication.getMainStage());
         if (file != null) {
-            log.accept("both",file.getAbsolutePath());
+            log.accept(TO_TEXT_AND_LABEL,file.getAbsolutePath());
         } else {
-            log.accept("both","Open File cancelled.");
+            log.accept(TO_TEXT_AND_LABEL,"Open File cancelled.");
         }
     }
 }

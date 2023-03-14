@@ -18,7 +18,7 @@ public class Controller implements ControllerFx {
         viewBuilder = new ViewBuilder(model, this::updateLog, this::requestUserAttention);
     }
 
-    private void updateLog(String s, String t) {
+    private void updateLog(Integer s, String t) {
         interactor.updateLogModel(s,t);
     }
 
