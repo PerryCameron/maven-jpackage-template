@@ -63,7 +63,6 @@ public class ViewBuilder implements Builder<Region> {
         textArea.setWrapText(true);
         textArea.textProperty().bind(model.mainTextProperty());
         log.accept("both","Try dragging one or more files and/or directories here from another application.");
-        log.accept("label","Ready.");
         textArea.setOnDragOver(event -> handleDragOver(textArea, event));
         textArea.setOnDragEntered(event -> handleDragEntered(textArea));
         textArea.setOnDragExited(event -> handleDragExited(textArea));
@@ -88,6 +87,7 @@ public class ViewBuilder implements Builder<Region> {
         createEditMenu(menuBar);
         createIntegrationMenu(menuBar);
         createDebugMenu(menuBar);
+        log.accept("label","Ready.");
         Button toggleDark = ButtonWidgets.boundDarkButton(model.darkProperty());
         toggleDark.setOnAction(event -> toggleDark(toggleDark,model.darkProperty()));
         Button helloWorld = ButtonWidgets.helloWorldButton();
@@ -106,6 +106,7 @@ public class ViewBuilder implements Builder<Region> {
         menu.getItems().addAll(findDebugLog, writeHelloWorldToLog);
         menuBar.getMenus().add(menu);
     }
+
     private void createFileMenu(MenuBar menuBar) {
         Menu file = new Menu("File");
         MenuItem newFile = MenuWidgets.Configure("New", x -> log.accept("","File -> New"), KeyCode.N);

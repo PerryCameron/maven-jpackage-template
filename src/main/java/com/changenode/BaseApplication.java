@@ -24,20 +24,10 @@ public class BaseApplication extends Application {
         return primaryStage;
     }
 
-
-
-//
-
-//
-//        statusLabel.setText("Ready.");
-//
-//        stage.show();
-//        //put window to front to avoid it to be hide behind other.
+//     Don't see a reason for this
+//        put window to front to avoid it to be hide behind other.
 //        stage.setAlwaysOnTop(true);
 //        stage.requestFocus();
 //        stage.toFront();
 //        stage.setAlwaysOnTop(false);
-//    }
-
-
 }
