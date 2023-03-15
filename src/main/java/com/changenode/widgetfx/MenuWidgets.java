@@ -8,7 +8,7 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 
 public class MenuWidgets {
-    public static MenuItem Configure(String name, EventHandler<ActionEvent> action, KeyCode keyCode) {
+    public static MenuItem menuItemOf(String name, EventHandler<ActionEvent> action, KeyCode keyCode) {
         MenuItem item = new MenuItem(name);
         item.setOnAction(action);
         if (keyCode != null)

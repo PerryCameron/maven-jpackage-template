@@ -14,7 +14,6 @@ public class BaseApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        primaryStage = primaryStage;
         primaryStage.setTitle("Hello World");
         primaryStage.setScene(new Scene(new Controller().getViewBuilder(),800, 600));
         primaryStage.show();

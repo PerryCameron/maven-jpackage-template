@@ -1,7 +1,10 @@
 package com.changenode;
 
 
+import atlantafx.base.theme.PrimerDark;
+import atlantafx.base.theme.PrimerLight;
 import com.changenode.FxInterface.ControllerFx;
+import javafx.application.Application;
 import javafx.concurrent.Task;
 import javafx.scene.layout.Region;
 
@@ -15,7 +18,7 @@ public class Controller implements ControllerFx {
     public Controller() {
         Model model = new Model();
         interactor = new Interactor(model);
-        viewBuilder = new ViewBuilder(model, this::updateLog, this::requestUserAttention);
+        viewBuilder = new ViewBuilder(model, this::updateLog, this::requestUserAttention, this::setToggleDark);
     }
 
     private void updateLog(Integer s, String t) {
@@ -37,6 +40,12 @@ public class Controller implements ControllerFx {
             }
         };
         new Thread(task).start();
+    }
+
+    // Here to decouple dependencies from AlantaFX from View
+    private void setToggleDark(Boolean isDark) {
+        if (isDark) Application.setUserAgentStylesheet(new PrimerDark().getUserAgentStylesheet());
+        else Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
     }
 
     public Region getViewBuilder() { return viewBuilder.build(); }

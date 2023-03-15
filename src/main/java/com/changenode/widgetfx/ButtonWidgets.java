@@ -2,12 +2,13 @@ package com.changenode.widgetfx;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.Button;
+import javafx.scene.control.ToggleButton;
 
 public class ButtonWidgets {
 
-    public static Button boundDarkButton(BooleanProperty booleanProperty) {
-        Button button = new Button();
-        button.setText("Light");
+    public static ToggleButton createDarkButton() {
+        ToggleButton button = new ToggleButton();
+        button.setText("Dark");
         button.setFocusTraversable(false);
         return button;
     }

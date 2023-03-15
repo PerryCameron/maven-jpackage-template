@@ -1,13 +1,11 @@
 package com.changenode;
 
-import atlantafx.base.theme.PrimerDark;
 import atlantafx.base.theme.PrimerLight;
 import com.changenode.FxInterface.LogConstants;
 import com.changenode.widgetfx.ButtonWidgets;
 import com.changenode.widgetfx.MenuWidgets;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -43,23 +41,26 @@ public class ViewBuilder implements Builder<Region>, LogConstants {
     private final Model model;
     private final BiConsumer<Integer,String> log;
     private final Consumer<Void> attention;
-    public ViewBuilder(Model model, BiConsumer<Integer,String> log, Consumer<Void> attention) {
+    private final Consumer<Boolean> isDark;
+
+    public ViewBuilder(Model model, BiConsumer<Integer,String> log, Consumer<Void> attention, Consumer<Boolean> isDark) {
         this.model = model;
         this.log = log;
         this.attention = attention;
+        this.isDark = isDark;
     }
 
     @Override
     public Region build() {
         BorderPane borderPane = new BorderPane();
-        borderPane.setCenter(setUpCenter());
-        borderPane.setTop(setUpTop());
-        borderPane.setBottom(setUpBottom());
+        borderPane.setCenter(setUpCenterTextArea());
+        borderPane.setTop(setUpToolBars());
+        borderPane.setBottom(setUpStatusBar());
         Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
         return borderPane;
     }
 
-    private Node setUpCenter() {
+    private Node setUpCenterTextArea() {
         TextArea textArea = new TextArea();
         textArea.setWrapText(true);
         textArea.textProperty().bind(model.mainTextProperty());
@@ -71,7 +72,7 @@ public class ViewBuilder implements Builder<Region>, LogConstants {
         return textArea;
     }
 
-    private Node setUpBottom() {
+    private Node setUpStatusBar() {
         Label statusLabel = new Label();
         statusLabel.setPadding(new Insets(5.0f, 5.0f, 5.0f, 5.0f));
         statusLabel.setMaxWidth(Double.MAX_VALUE);
@@ -79,82 +80,99 @@ public class ViewBuilder implements Builder<Region>, LogConstants {
         return statusLabel;
     }
 
-    private Node setUpTop() {
+    private Node setUpToolBars() {
         VBox topElements = new VBox();
-        MenuBar menuBar = new MenuBar();
-        topElements.getChildren().add(menuBar);
+        topElements.getChildren().add(setUpMenuBar());
         ToolBar toolbar = new ToolBar();
-        createFileMenu(menuBar);
-        createEditMenu(menuBar);
-        createIntegrationMenu(menuBar);
-        createDebugMenu(menuBar);
         log.accept(TO_LABEL,"Ready.");
-        Button toggleDark = ButtonWidgets.boundDarkButton(model.darkProperty());
-        toggleDark.setOnAction(event -> toggleDark(toggleDark,model.darkProperty()));
+        out.println("Created toggle button");
         Button helloWorld = ButtonWidgets.helloWorldButton();
         helloWorld.setOnAction(event -> log.accept(TO_TEXT_AND_LABEL,"Hello World! " + java.util.Calendar.getInstance().getTime()));
-        toolbar.getItems().addAll(toggleDark,helloWorld);
+        toolbar.getItems().addAll(createToggleButton(),helloWorld);
         topElements.getChildren().add(toolbar);
         return topElements;
     }
 
-    private void createDebugMenu(MenuBar menuBar) {
+    private Node createToggleButton() {
+        ToggleButton toggleDark = ButtonWidgets.createDarkButton();
+        model.isDarkProperty().bindBidirectional(toggleDark.selectedProperty());
+        model.isDarkProperty().addListener((observable, oldValue, isDark) -> {
+            if(isDark) toggleDark.setText("Light");
+            else toggleDark.setText("Dark");
+            triggerCssChange(isDark);
+            out.println(isDark);
+        });
+        return toggleDark;
+    }
+
+    private void triggerCssChange(boolean change) {
+        isDark.accept(change);
+    }
+
+    private Node setUpMenuBar() {
+        MenuBar menuBar = new MenuBar();
+        if(isMac()) menuBar.setUseSystemMenuBar(true);
+        menuBar.getMenus().addAll(createFileMenu(),createEditMenu(),createIntegrationMenu(),createDebugMenu());
+        return menuBar;
+    }
+
+    private Menu createDebugMenu() {
         Menu menu = new Menu("Debug");
         MenuItem findDebugLog = new MenuItem("Find Debug Log");
         findDebugLog.setOnAction(e -> getDesktop().browseFileDirectory(Fetcher.outputFile));
         MenuItem writeHelloWorldToLog = new MenuItem("Write Hello World to Log");
         writeHelloWorldToLog.setOnAction(e -> out.println("Hello World! " + getInstance().getTime()));
         menu.getItems().addAll(findDebugLog, writeHelloWorldToLog);
-        menuBar.getMenus().add(menu);
+        return menu;
     }
 
-    private void createFileMenu(MenuBar menuBar) {
-        Menu file = new Menu("File");
-        MenuItem newFile = MenuWidgets.Configure("New", x -> log.accept(TO_TEXT_AND_LABEL,"File -> New"), KeyCode.N);
-        MenuItem open = MenuWidgets.Configure("Open...", x -> openFileDialog(), KeyCode.O);
-        file.getItems().addAll(newFile, open);
+    private Menu createFileMenu() {
+        Menu menu = new Menu("File");
+        MenuItem newFile = MenuWidgets.menuItemOf("New", x -> log.accept(TO_TEXT_AND_LABEL,"File -> New"), KeyCode.N);
+        MenuItem open = MenuWidgets.menuItemOf("Open...", x -> openFileDialog(), KeyCode.O);
+        menu.getItems().addAll(newFile, open);
         if (!isMac()) {
-            MenuItem quit = MenuWidgets.Configure("Quit", x -> Platform.exit(), KeyCode.Q);
-            file.getItems().add(quit);
-        } else menuBar.setUseSystemMenuBar(true);
-        menuBar.getMenus().addAll(file);
+            MenuItem quit = MenuWidgets.menuItemOf("Quit", x -> Platform.exit(), KeyCode.Q);
+            menu.getItems().add(quit);
+        }
+        return menu;
     }
 
-    private void createEditMenu(MenuBar menuBar) {
-        Menu edit = new Menu("Edit");
-        MenuItem undo = MenuWidgets.Configure("Undo", x -> log.accept(TO_TEXT_AND_LABEL,"Undo"), KeyCode.Z);
-        MenuItem redo = MenuWidgets.Configure("Redo", x -> log.accept(TO_TEXT_AND_LABEL,"Redo"), KeyCode.R);
+    private Menu createEditMenu() {
+        Menu menu = new Menu("Edit");
+        MenuItem undo = MenuWidgets.menuItemOf("Undo", x -> log.accept(TO_TEXT_AND_LABEL,"Undo"), KeyCode.Z);
+        MenuItem redo = MenuWidgets.menuItemOf("Redo", x -> log.accept(TO_TEXT_AND_LABEL,"Redo"), KeyCode.R);
         SeparatorMenuItem editSeparator = new SeparatorMenuItem();
-        MenuItem cut = MenuWidgets.Configure("Cut", x -> log.accept(TO_TEXT_AND_LABEL,"Cut"), KeyCode.X);
-        MenuItem copy = MenuWidgets.Configure("Copy", x -> log.accept(TO_TEXT_AND_LABEL,"Copy"), KeyCode.C);
-        MenuItem paste = MenuWidgets.Configure("Paste", x -> log.accept(TO_TEXT_AND_LABEL,"Paste"), KeyCode.V);
-        edit.getItems().addAll(undo, redo, editSeparator, cut, copy, paste);
-        menuBar.getMenus().addAll(edit);
+        MenuItem cut = MenuWidgets.menuItemOf("Cut", x -> log.accept(TO_TEXT_AND_LABEL,"Cut"), KeyCode.X);
+        MenuItem copy = MenuWidgets.menuItemOf("Copy", x -> log.accept(TO_TEXT_AND_LABEL,"Copy"), KeyCode.C);
+        MenuItem paste = MenuWidgets.menuItemOf("Paste", x -> log.accept(TO_TEXT_AND_LABEL,"Paste"), KeyCode.V);
+        menu.getItems().addAll(undo, redo, editSeparator, cut, copy, paste);
+        return menu;
     }
 
-    private void createIntegrationMenu(MenuBar menuBar) {
-        if (!isTaskbarSupported()) return;
+    private Menu createIntegrationMenu() {
+        Menu menu = new Menu("Desktop");
+        if (!isTaskbarSupported()) return menu;
         log.accept(TO_TEXT_AND_LABEL,"");
         log.accept(TO_TEXT_AND_LABEL,"Desktop integration flags for this platform include:");
         printTaskBarFeatures();
         setImagesToModel();
-        MenuItem useCustomIcon = MenuWidgets.Configure("Use Custom App Icon", x -> getTaskbar().setIconImage(model.redCircleIconProperty().get()), null);
-        MenuItem useDefaultAppIcon = MenuWidgets.Configure("Use Default App Icon", x -> getTaskbar().setIconImage(model.defaultIconProperty().get()), null);
+        MenuItem useCustomIcon = MenuWidgets.menuItemOf("Use Custom App Icon", x -> getTaskbar().setIconImage(model.redCircleIconProperty().get()), null);
+        MenuItem useDefaultAppIcon = MenuWidgets.menuItemOf("Use Default App Icon", x -> getTaskbar().setIconImage(model.defaultIconProperty().get()), null);
         useCustomIcon.setDisable(!getTaskbar().isSupported(Taskbar.Feature.ICON_IMAGE));
         useDefaultAppIcon.setDisable(!getTaskbar().isSupported(Taskbar.Feature.ICON_IMAGE));
-        Menu desktopIntegration = new Menu("Desktop");
-        MenuItem setIconBadge = MenuWidgets.Configure("Set Badge", x -> getTaskbar().setIconBadge("1"), null);
-        MenuItem removeIconBadge = MenuWidgets.Configure("Remove Badge", x -> getTaskbar().setIconBadge(""), null);
+        MenuItem setIconBadge = MenuWidgets.menuItemOf("Set Badge", x -> getTaskbar().setIconBadge("1"), null);
+        MenuItem removeIconBadge = MenuWidgets.menuItemOf("Remove Badge", x -> getTaskbar().setIconBadge(""), null);
         setIconBadge.setDisable(!getTaskbar().isSupported(Taskbar.Feature.ICON_BADGE_TEXT));
         removeIconBadge.setDisable(!getTaskbar().isSupported(Taskbar.Feature.ICON_BADGE_TEXT));
-        MenuItem addProgress = MenuWidgets.Configure("Add Icon Progress", x -> { addProgress(); }, KeyCode.R);
-        MenuItem clearProgress = MenuWidgets.Configure("Clear Icon Progress", x -> { clearProgress(); }, null);
+        MenuItem addProgress = MenuWidgets.menuItemOf("Add Icon Progress", x -> { addProgress(); }, KeyCode.R);
+        MenuItem clearProgress = MenuWidgets.menuItemOf("Clear Icon Progress", x -> { clearProgress(); }, null);
         addProgress.setDisable(!getTaskbar().isSupported(Taskbar.Feature.PROGRESS_VALUE));
         clearProgress.setDisable(!getTaskbar().isSupported(Taskbar.Feature.PROGRESS_VALUE));
-        MenuItem requestUserAttention = MenuWidgets.Configure("Request User Attention (5s)", x -> attention.accept(null), null);
+        MenuItem requestUserAttention = MenuWidgets.menuItemOf("Request User Attention (5s)", x -> attention.accept(null), null);
         requestUserAttention.setDisable(!getTaskbar().isSupported(Taskbar.Feature.USER_ATTENTION));
-        desktopIntegration.getItems().addAll(setIconBadge, removeIconBadge, addProgress, clearProgress, useCustomIcon, useDefaultAppIcon, requestUserAttention);
-        menuBar.getMenus().add(desktopIntegration);
+        menu.getItems().addAll(setIconBadge, removeIconBadge, addProgress, clearProgress, useCustomIcon, useDefaultAppIcon, requestUserAttention);
+        return menu;
     }
 
     private void clearProgress() {
@@ -215,21 +233,7 @@ public class ViewBuilder implements Builder<Region>, LogConstants {
         return bufferedImage;
     }
 
-    private void toggleDark(Button toggleDark, BooleanProperty darkProperty) {
-        System.out.println("did this");
-        if (darkProperty.get()) {
-            // This is how to set a light style w/the default JavaFX CSS
-            // scene.getRoot().setStyle("");
-            Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
-            toggleDark.setText("Light");
-        } else {
-            // This is how to set a dark style w/the default JavaFX CSS.
-            // scene.getRoot().setStyle("-fx-base:#25292D;");
-            Application.setUserAgentStylesheet(new PrimerDark().getUserAgentStylesheet());
-            toggleDark.setText("Dark");
-        }
-        darkProperty.set(!darkProperty.get());
-    }
+
 
     private void handleDragOver(TextArea textArea, DragEvent event) {
         if (event.getGestureSource() != textArea && event.getDragboard().hasFiles()) {
