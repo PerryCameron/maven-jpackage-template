@@ -15,5 +15,4 @@ public class MenuWidgets {
             item.setAccelerator(new KeyCodeCombination(keyCode, KeyCombination.SHORTCUT_DOWN));
         return item;
     }
-
 }

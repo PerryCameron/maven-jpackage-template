@@ -1,7 +1,7 @@
 package com.changenode;
 
 import atlantafx.base.theme.PrimerLight;
-import com.changenode.FxInterface.LogConstants;
+import com.changenode.FxInterface.Log;
 import com.changenode.widgetfx.ButtonWidgets;
 import com.changenode.widgetfx.MenuWidgets;
 import javafx.application.Application;
@@ -27,7 +27,6 @@ import javafx.util.Builder;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static java.awt.Desktop.getDesktop;
@@ -37,15 +36,15 @@ import static java.lang.System.getProperty;
 import static java.lang.System.out;
 import static java.util.Calendar.getInstance;
 
-public class ViewBuilder implements Builder<Region>, LogConstants {
+public class ViewBuilder implements Builder<Region> {
     private final Model model;
-    private final BiConsumer<Integer,String> log;
+    private LogIt logger;
     private final Consumer<Void> attention;
     private final Consumer<Boolean> isDark;
 
-    public ViewBuilder(Model model, BiConsumer<Integer,String> log, Consumer<Void> attention, Consumer<Boolean> isDark) {
+    public ViewBuilder(Model model, Consumer<Void> attention, Consumer<Boolean> isDark) {
         this.model = model;
-        this.log = log;
+        this.logger = new LogIt(model);
         this.attention = attention;
         this.isDark = isDark;
     }
@@ -64,13 +63,14 @@ public class ViewBuilder implements Builder<Region>, LogConstants {
         TextArea textArea = new TextArea();
         textArea.setWrapText(true);
         textArea.textProperty().bind(model.mainTextProperty());
-        log.accept(TO_TEXT_AND_LABEL,"Try dragging one or more files and/or directories here from another application.");
+        log(Log.LoggingType.BOTH,"Try dragging one or more files and/or directories here from another application.");
         textArea.setOnDragOver(event -> handleDragOver(textArea, event));
         textArea.setOnDragEntered(event -> handleDragEntered(textArea));
         textArea.setOnDragExited(event -> handleDragExited(textArea));
         textArea.setOnDragDropped(this::handleDragDropped);
         return textArea;
     }
+
 
     private Node setUpStatusBar() {
         Label statusLabel = new Label();
@@ -84,10 +84,10 @@ public class ViewBuilder implements Builder<Region>, LogConstants {
         VBox topElements = new VBox();
         topElements.getChildren().add(setUpMenuBar());
         ToolBar toolbar = new ToolBar();
-        log.accept(TO_LABEL,"Ready.");
+        log(Log.LoggingType.STATUS_BAR,"Ready.");
         out.println("Created toggle button");
         Button helloWorld = ButtonWidgets.helloWorldButton();
-        helloWorld.setOnAction(event -> log.accept(TO_TEXT_AND_LABEL,"Hello World! " + java.util.Calendar.getInstance().getTime()));
+        helloWorld.setOnAction(event -> log(Log.LoggingType.BOTH,"Hello World! " + java.util.Calendar.getInstance().getTime()));
         toolbar.getItems().addAll(createToggleButton(),helloWorld);
         topElements.getChildren().add(toolbar);
         return topElements;
@@ -128,7 +128,7 @@ public class ViewBuilder implements Builder<Region>, LogConstants {
 
     private Menu createFileMenu() {
         Menu menu = new Menu("File");
-        MenuItem newFile = MenuWidgets.menuItemOf("New", x -> log.accept(TO_TEXT_AND_LABEL,"File -> New"), KeyCode.N);
+        MenuItem newFile = MenuWidgets.menuItemOf("New", x -> log(Log.LoggingType.BOTH,"File -> New"), KeyCode.N);
         MenuItem open = MenuWidgets.menuItemOf("Open...", x -> openFileDialog(), KeyCode.O);
         menu.getItems().addAll(newFile, open);
         if (!isMac()) {
@@ -140,12 +140,12 @@ public class ViewBuilder implements Builder<Region>, LogConstants {
 
     private Menu createEditMenu() {
         Menu menu = new Menu("Edit");
-        MenuItem undo = MenuWidgets.menuItemOf("Undo", x -> log.accept(TO_TEXT_AND_LABEL,"Undo"), KeyCode.Z);
-        MenuItem redo = MenuWidgets.menuItemOf("Redo", x -> log.accept(TO_TEXT_AND_LABEL,"Redo"), KeyCode.R);
+        MenuItem undo = MenuWidgets.menuItemOf("Undo", x -> log(Log.LoggingType.BOTH,"Undo"), KeyCode.Z);
+        MenuItem redo = MenuWidgets.menuItemOf("Redo", x -> log(Log.LoggingType.BOTH,"Redo"), KeyCode.R);
         SeparatorMenuItem editSeparator = new SeparatorMenuItem();
-        MenuItem cut = MenuWidgets.menuItemOf("Cut", x -> log.accept(TO_TEXT_AND_LABEL,"Cut"), KeyCode.X);
-        MenuItem copy = MenuWidgets.menuItemOf("Copy", x -> log.accept(TO_TEXT_AND_LABEL,"Copy"), KeyCode.C);
-        MenuItem paste = MenuWidgets.menuItemOf("Paste", x -> log.accept(TO_TEXT_AND_LABEL,"Paste"), KeyCode.V);
+        MenuItem cut = MenuWidgets.menuItemOf("Cut", x -> log(Log.LoggingType.BOTH,"Cut"), KeyCode.X);
+        MenuItem copy = MenuWidgets.menuItemOf("Copy", x -> log(Log.LoggingType.BOTH,"Copy"), KeyCode.C);
+        MenuItem paste = MenuWidgets.menuItemOf("Paste", x -> log(Log.LoggingType.BOTH,"Paste"), KeyCode.V);
         menu.getItems().addAll(undo, redo, editSeparator, cut, copy, paste);
         return menu;
     }
@@ -153,8 +153,8 @@ public class ViewBuilder implements Builder<Region>, LogConstants {
     private Menu createIntegrationMenu() {
         Menu menu = new Menu("Desktop");
         if (!isTaskbarSupported()) return menu;
-        log.accept(TO_TEXT_AND_LABEL,"");
-        log.accept(TO_TEXT_AND_LABEL,"Desktop integration flags for this platform include:");
+        log(Log.LoggingType.BOTH,"");
+        log(Log.LoggingType.BOTH,"Desktop integration flags for this platform include:");
         printTaskBarFeatures();
         setImagesToModel();
         MenuItem useCustomIcon = MenuWidgets.menuItemOf("Use Custom App Icon", x -> getTaskbar().setIconImage(model.redCircleIconProperty().get()), null);
@@ -192,7 +192,7 @@ public class ViewBuilder implements Builder<Region>, LogConstants {
 
     private void printTaskBarFeatures() {
         for (Taskbar.Feature feature : Taskbar.Feature.values()) {
-            log.accept(TO_TEXT_AND_LABEL ," " + feature.name() + " " + getTaskbar().isSupported(feature));
+            log(Log.LoggingType.BOTH ," " + feature.name() + " " + getTaskbar().isSupported(feature));
         }
     }
 
@@ -233,8 +233,6 @@ public class ViewBuilder implements Builder<Region>, LogConstants {
         return bufferedImage;
     }
 
-
-
     private void handleDragOver(TextArea textArea, DragEvent event) {
         if (event.getGestureSource() != textArea && event.getDragboard().hasFiles()) {
             event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
@@ -255,7 +253,7 @@ public class ViewBuilder implements Builder<Region>, LogConstants {
         boolean success = false;
         if (db.hasFiles()) {
             for (File file : db.getFiles()) {
-                log.accept(TO_TEXT_AND_LABEL, file.getAbsolutePath());
+                log(Log.LoggingType.BOTH, file.getAbsolutePath());
             }
             success = true;
         }
@@ -269,9 +267,13 @@ public class ViewBuilder implements Builder<Region>, LogConstants {
         fileChooser.setTitle("Open File");
         File file = fileChooser.showOpenDialog(BaseApplication.getMainStage());
         if (file != null) {
-            log.accept(TO_TEXT_AND_LABEL,file.getAbsolutePath());
+            log(Log.LoggingType.BOTH,file.getAbsolutePath());
         } else {
-            log.accept(TO_TEXT_AND_LABEL,"Open File cancelled.");
+            log(Log.LoggingType.BOTH,"Open File cancelled.");
         }
+    }
+
+    private void log(Log.LoggingType type, String mess) {
+        logger.log(type,mess);
     }
 }

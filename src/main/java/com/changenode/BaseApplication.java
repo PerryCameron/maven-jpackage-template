@@ -22,11 +22,4 @@ public class BaseApplication extends Application {
     public static Stage getMainStage() {
         return primaryStage;
     }
-
-//     Don't see a reason for this
-//        put window to front to avoid it to be hide behind other.
-//        stage.setAlwaysOnTop(true);
-//        stage.requestFocus();
-//        stage.toFront();
-//        stage.setAlwaysOnTop(false);
 }

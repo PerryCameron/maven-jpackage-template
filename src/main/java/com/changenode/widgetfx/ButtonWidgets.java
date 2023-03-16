@@ -1,6 +1,5 @@
 package com.changenode.widgetfx;
 
-import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToggleButton;
 
@@ -19,5 +18,4 @@ public class ButtonWidgets {
         button.setFocusTraversable(false);
         return button;
     }
-
 }

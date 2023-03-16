@@ -4,6 +4,7 @@ package com.changenode;
 import atlantafx.base.theme.PrimerDark;
 import atlantafx.base.theme.PrimerLight;
 import com.changenode.FxInterface.ControllerFx;
+import com.changenode.FxInterface.Log;
 import javafx.application.Application;
 import javafx.concurrent.Task;
 import javafx.scene.layout.Region;
@@ -18,11 +19,11 @@ public class Controller implements ControllerFx {
     public Controller() {
         Model model = new Model();
         interactor = new Interactor(model);
-        viewBuilder = new ViewBuilder(model, this::updateLog, this::requestUserAttention, this::setToggleDark);
+        viewBuilder = new ViewBuilder(model, this::requestUserAttention, this::setToggleDark);
     }
 
-    private void updateLog(Integer s, String t) {
-        interactor.updateLogModel(s,t);
+    private void updateLog(Log log) {
+        interactor.updateLogModel(log);
     }
 
     private void requestUserAttention(Void unused) {

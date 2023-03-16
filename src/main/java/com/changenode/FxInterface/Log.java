@@ -1,6 +1,11 @@
 package com.changenode.FxInterface;
 
 public interface Log {
-    void log(Integer s, String t);
-    void appendText(String text);
+    enum LoggingType {
+        STATUS_BAR,
+        LOG,
+        BOTH;
+    }
+
+    void log(LoggingType type, String message);
 }
