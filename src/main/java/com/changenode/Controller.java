@@ -27,18 +27,14 @@ public class Controller implements ControllerFx {
     }
 
     private void requestUserAttention(Void unused) {
-        Task<Void> task = new Task<>() {
-            @Override
-            public Void call() {
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                getTaskbar().requestUserAttention(true, true);
-                out.println("I need your attention");
-                return null;
+        Runnable task = () -> {
+            try {
+                Thread.sleep(5000); // delay for 5 seconds
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+            getTaskbar().requestUserAttention(true, true);
+            out.println("I need your attention");
         };
         new Thread(task).start();
     }

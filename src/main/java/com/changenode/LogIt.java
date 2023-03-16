@@ -18,14 +18,19 @@ public class LogIt implements Log {
     @Override
     public void log(LoggingType type, String message) {
         switch (type) {
-            case LOG -> appendText(message + System.lineSeparator());
+            case LOG -> appendText(message);
             case STATUS_BAR -> appendLabel(message);
-            case BOTH -> appendText(message + System.lineSeparator());
+            case BOTH -> appendBoth(message);
         }
     }
 
+    public void appendBoth(String text) {
+        appendText(text);
+        appendLabel(text);
+    }
+
     public void appendText(String text) {
-        sb.append(text);
+        sb.append(text  + System.lineSeparator());
         model.mainTextProperty().set(sb.toString());
     }
 
