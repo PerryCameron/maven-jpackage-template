@@ -58,7 +58,7 @@ public class ViewBuilder implements Builder<Region> {
         TextArea textArea = new TextArea();
         textArea.setWrapText(true);
         textArea.textProperty().bind(model.mainTextProperty());
-        log(Log.LoggingType.BOTH,"Try dragging one or more files and/or directories here from another application.");
+        log(Log.LoggingType.LOG,"Try dragging one or more files and/or directories here from another application.");
         textArea.setOnDragOver(event -> handleDragOver(textArea, event));
         textArea.setOnDragEntered(event -> handleDragEntered(textArea));
         textArea.setOnDragExited(event -> handleDragExited(textArea));
@@ -173,7 +173,7 @@ public class ViewBuilder implements Builder<Region> {
 
     private void printTaskBarFeatures() {
         for (Taskbar.Feature feature : Taskbar.Feature.values()) {
-            log(Log.LoggingType.BOTH ," " + feature.name() + " " + getTaskbar().isSupported(feature));
+            log(Log.LoggingType.LOG ," " + feature.name() + " " + getTaskbar().isSupported(feature));
         }
     }
 
