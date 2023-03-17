@@ -12,7 +12,25 @@ public class Model {
     private final IntegerProperty currentIconProgress = new SimpleIntegerProperty(1);
     private final ObjectProperty<BufferedImage> defaultIcon = new SimpleObjectProperty<>();
     private final ObjectProperty<BufferedImage> redCircleIcon = new SimpleObjectProperty<>();
+    private final BooleanProperty fileChooserOpen = new SimpleBooleanProperty(false);
+    private final ObjectProperty<LogData> logData = new SimpleObjectProperty<>();
 
+    public ObjectProperty<LogData> logDataProperty() { return logData;}
+    public LogData getLogData() {
+        return logData.get();
+    }
+    public void setLogData(LogData logData) {
+        this.logData.set(logData);
+    }
+    public boolean isFileChooserOpen() {
+        return fileChooserOpen.get();
+    }
+    public BooleanProperty fileChooserOpenProperty() {
+        return fileChooserOpen;
+    }
+    public void setFileChooserOpen(boolean fileChooserOpen) {
+        this.fileChooserOpen.set(fileChooserOpen);
+    }
     public StringProperty mainTextProperty() {
         return mainText;
     }

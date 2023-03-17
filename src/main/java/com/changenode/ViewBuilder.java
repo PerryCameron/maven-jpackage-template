@@ -2,6 +2,7 @@ package com.changenode;
 
 import com.changenode.FxInterface.Log;
 import com.changenode.widgetfx.ButtonWidgets;
+import com.changenode.widgetfx.FileChooserWidgets;
 import com.changenode.widgetfx.MenuWidgets;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -37,12 +38,10 @@ import static java.util.Calendar.getInstance;
 
 public class ViewBuilder implements Builder<Region> {
     private final Model model;
-    private LogIt logger;
     private final Consumer<Void> attention;
 
     public ViewBuilder(Model model, Consumer<Void> attention) {
         this.model = model;
-        this.logger = new LogIt(model);
         this.attention = attention;
     }
 
@@ -87,18 +86,6 @@ public class ViewBuilder implements Builder<Region> {
         return topElements;
     }
 
-//    private Node createToggleButton() {
-//        ToggleButton toggleDark = ButtonWidgets.createDarkButton();
-//        model.isDarkProperty().bindBidirectional(toggleDark.selectedProperty());
-//        model.isDarkProperty().addListener((observable, oldValue, isDark) -> {
-//            if(isDark) toggleDark.setText("Light");
-//            else toggleDark.setText("Dark");
-//            triggerCssChange(isDark);
-//            out.println(isDark);
-//        });
-//        return toggleDark;
-//    }
-
     private Node createToggleButton() {
         ToggleButton toggleDark = ButtonWidgets.nftToggleButtonOf("Dark", model.isDarkProperty());
         toggleDark.textProperty().bind(Bindings.createStringBinding(() ->
@@ -126,12 +113,9 @@ public class ViewBuilder implements Builder<Region> {
     private Menu createFileMenu() {
         Menu menu = new Menu("File");
         MenuItem newFile = MenuWidgets.menuItemOf("New", x -> log(Log.LoggingType.BOTH,"File -> New"), KeyCode.N);
-        MenuItem open = MenuWidgets.menuItemOf("Open...", x -> openFileDialog(), KeyCode.O);
+        MenuItem open = MenuWidgets.menuItemOf("Open...", x -> handleFileDialogue(), KeyCode.O);
         menu.getItems().addAll(newFile, open);
-        if (!isMac()) {
-            MenuItem quit = MenuWidgets.menuItemOf("Quit", x -> Platform.exit(), KeyCode.Q);
-            menu.getItems().add(quit);
-        }
+        if (!isMac()) menu.getItems().add(MenuWidgets.menuItemOf("Quit", x -> Platform.exit(), KeyCode.Q));
         return menu;
     }
 
@@ -248,20 +232,13 @@ public class ViewBuilder implements Builder<Region> {
     private void handleDragDropped(DragEvent event) {
         Dragboard db = event.getDragboard();
         boolean success = false;
-        if (db.hasFiles()) {
-            for (File file : db.getFiles()) {
-                log(Log.LoggingType.BOTH, file.getAbsolutePath());
-            }
-            success = true;
-        }
-        /* let the source know whether the information was successfully transferred and used */
+        db.getFiles().stream().map(File::toPath).forEach(path -> log(Log.LoggingType.BOTH, path.toAbsolutePath().toString()));
         event.setDropCompleted(success);
         event.consume();
     }
 
-    private void openFileDialog() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open File");
+    private void handleFileDialogue() {
+        FileChooser fileChooser = FileChooserWidgets.fileChooseOf("Open File","user.home");
         File file = fileChooser.showOpenDialog(BaseApplication.getMainStage());
         if (file != null) {
             log(Log.LoggingType.BOTH,file.getAbsolutePath());
@@ -270,7 +247,8 @@ public class ViewBuilder implements Builder<Region> {
         }
     }
 
-    private void log(Log.LoggingType type, String mess) {
-        logger.log(type,mess);
-    }
+    private void log(Log.LoggingType type, String message) {
+        model.setLogData(new LogData(type, message));
+    } //        logger.log(type,mess);
+
 }
