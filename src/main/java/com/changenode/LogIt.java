@@ -24,7 +24,7 @@ public class LogIt implements Log {
         }
     }
 
-    public void processData(LogData data) { log(data.type(), data.message());}
+    public void appendLogData(LogData data) { log(data.type(), data.message());}
 
     public void appendBoth(String text) {
         appendText(text);

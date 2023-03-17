@@ -29,7 +29,7 @@ public class Controller implements ControllerFx {
             setToggleDark(model.isDarkProperty().get());
         });
         model.logDataProperty().addListener(observable -> {
-            refreshLog(model.logDataProperty().get());
+            appendLog(model.logDataProperty().get());
         });
         model.fileChooserOpenProperty().addListener(observable -> {
             openFileDialog(model);
@@ -37,8 +37,8 @@ public class Controller implements ControllerFx {
         setToggleDark(false);
     }
 
-    private void refreshLog(LogData logData) {
-        logger.processData(logData);
+    private void appendLog(LogData logData) {
+        logger.appendLogData(logData);
     }
 
     private void requestUserAttention(Void unused) {
