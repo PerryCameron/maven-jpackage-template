@@ -71,6 +71,7 @@ public class ViewBuilder implements Builder<Region> {
         statusLabel.setPadding(new Insets(5.0f, 5.0f, 5.0f, 5.0f));
         statusLabel.setMaxWidth(Double.MAX_VALUE);
         statusLabel.textProperty().bind(model.statusLabelProperty());
+        log(Log.LoggingType.STATUS_BAR,"Ready.");
         return statusLabel;
     }
 
@@ -78,7 +79,6 @@ public class ViewBuilder implements Builder<Region> {
         VBox topElements = new VBox();
         topElements.getChildren().add(setUpMenuBar());
         ToolBar toolbar = new ToolBar();
-        log(Log.LoggingType.STATUS_BAR,"Ready.");
         Button helloWorld = ButtonWidgets.menuButtonOf("Hello World",false);
         helloWorld.setOnAction(event -> log(Log.LoggingType.BOTH,"Hello World! " + java.util.Calendar.getInstance().getTime()));
         toolbar.getItems().addAll(createToggleButton(),helloWorld);
