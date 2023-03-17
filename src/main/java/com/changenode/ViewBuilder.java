@@ -1,11 +1,10 @@
 package com.changenode;
 
-import atlantafx.base.theme.PrimerLight;
 import com.changenode.FxInterface.Log;
 import com.changenode.widgetfx.ButtonWidgets;
 import com.changenode.widgetfx.MenuWidgets;
-import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -40,13 +39,11 @@ public class ViewBuilder implements Builder<Region> {
     private final Model model;
     private LogIt logger;
     private final Consumer<Void> attention;
-    private final Consumer<Boolean> isDark;
 
-    public ViewBuilder(Model model, Consumer<Void> attention, Consumer<Boolean> isDark) {
+    public ViewBuilder(Model model, Consumer<Void> attention) {
         this.model = model;
         this.logger = new LogIt(model);
         this.attention = attention;
-        this.isDark = isDark;
     }
 
     @Override
@@ -55,7 +52,6 @@ public class ViewBuilder implements Builder<Region> {
         borderPane.setCenter(setUpCenterTextArea());
         borderPane.setTop(setUpToolBars());
         borderPane.setBottom(setUpStatusBar());
-        Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
         return borderPane;
     }
 
@@ -71,7 +67,6 @@ public class ViewBuilder implements Builder<Region> {
         return textArea;
     }
 
-
     private Node setUpStatusBar() {
         Label statusLabel = new Label();
         statusLabel.setPadding(new Insets(5.0f, 5.0f, 5.0f, 5.0f));
@@ -85,28 +80,30 @@ public class ViewBuilder implements Builder<Region> {
         topElements.getChildren().add(setUpMenuBar());
         ToolBar toolbar = new ToolBar();
         log(Log.LoggingType.STATUS_BAR,"Ready.");
-        out.println("Created toggle button");
-        Button helloWorld = ButtonWidgets.helloWorldButton();
+        Button helloWorld = ButtonWidgets.menuButtonOf("Hello World",false);
         helloWorld.setOnAction(event -> log(Log.LoggingType.BOTH,"Hello World! " + java.util.Calendar.getInstance().getTime()));
         toolbar.getItems().addAll(createToggleButton(),helloWorld);
         topElements.getChildren().add(toolbar);
         return topElements;
     }
 
-    private Node createToggleButton() {
-        ToggleButton toggleDark = ButtonWidgets.createDarkButton();
-        model.isDarkProperty().bindBidirectional(toggleDark.selectedProperty());
-        model.isDarkProperty().addListener((observable, oldValue, isDark) -> {
-            if(isDark) toggleDark.setText("Light");
-            else toggleDark.setText("Dark");
-            triggerCssChange(isDark);
-            out.println(isDark);
-        });
-        return toggleDark;
-    }
+//    private Node createToggleButton() {
+//        ToggleButton toggleDark = ButtonWidgets.createDarkButton();
+//        model.isDarkProperty().bindBidirectional(toggleDark.selectedProperty());
+//        model.isDarkProperty().addListener((observable, oldValue, isDark) -> {
+//            if(isDark) toggleDark.setText("Light");
+//            else toggleDark.setText("Dark");
+//            triggerCssChange(isDark);
+//            out.println(isDark);
+//        });
+//        return toggleDark;
+//    }
 
-    private void triggerCssChange(boolean change) {
-        isDark.accept(change);
+    private Node createToggleButton() {
+        ToggleButton toggleDark = ButtonWidgets.nftToggleButtonOf("Dark", model.isDarkProperty());
+        toggleDark.textProperty().bind(Bindings.createStringBinding(() ->
+                toggleDark.selectedProperty().get() ? "Light" : "Dark", toggleDark.selectedProperty()));
+        return toggleDark;
     }
 
     private Node setUpMenuBar() {

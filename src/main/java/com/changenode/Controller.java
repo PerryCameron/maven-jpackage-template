@@ -19,11 +19,11 @@ public class Controller implements ControllerFx {
     public Controller() {
         Model model = new Model();
         interactor = new Interactor(model);
-        viewBuilder = new ViewBuilder(model, this::requestUserAttention, this::setToggleDark);
-    }
-
-    private void updateLog(Log log) {
-        interactor.updateLogModel(log);
+        viewBuilder = new ViewBuilder(model, this::requestUserAttention);
+        model.isDarkProperty().addListener((observable) -> {
+            setToggleDark(model.isDarkProperty().get());
+        });
+        Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
     }
 
     private void requestUserAttention(Void unused) {
